@@ -18,12 +18,15 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // CORS Middleware
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "https://property-rental-platform-cdohgcjyj-codingbyzohaib.vercel.app",
+];
+
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      "http://localhost:5174",
-    ],
+    origin: allowedOrigins,
     methods: [
       "GET",
       "POST",
@@ -309,18 +312,18 @@ app.post("/api/messages", async (req, res) => {
 });
 
 // DATABASE CONNECTION AND SERVER START
+const mongoURI =
+  process.env.MONGODB_URI ||
+  process.env.MONGO_URI ||
+  "mongodb://127.0.0.1:27017/havenly_db";
+
 mongoose
-  .connect(
-    process.env.MONGO_URI ||
-      "mongodb://127.0.0.1:27017/havenly_db"
-  )
+  .connect(mongoURI)
   .then(() => {
     console.log("MongoDB connected successfully!");
 
-    app.listen(PORT, () => {
-      console.log(
-        `Havenly Backend running on port ${PORT}`
-      );
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`Havenly Backend running on port ${PORT}`);
     });
   })
   .catch((error) => {

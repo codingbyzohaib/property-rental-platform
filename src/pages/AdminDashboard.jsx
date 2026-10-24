@@ -19,7 +19,7 @@ import AdminProperties from "./AdminProperties";
 import AdminMessages from "./AdminMessages";
 import "./AdminDashboard.css";
 
-const API_URL = "http://localhost:5000/api/admin";
+const API_URL = "https://havenly-backend-qp1x.onrender.com/api/admin";
 
 function AdminDashboard() {
   const navigate = useNavigate();

@@ -42,7 +42,7 @@ function Register({ onRegister }) {
 
     try {
       const response = await fetch(
-        "http://localhost:5000/api/auth/register",
+        "https://havenly-backend-qp1x.onrender.com/api/auth/register",
         {
           method: "POST",
           headers: {

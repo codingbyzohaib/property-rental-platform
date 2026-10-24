@@ -32,7 +32,7 @@ function Login({ onLogin }) {
 
     try {
       const response = await fetch(
-        "http://localhost:5000/api/auth/login",
+        "https://havenly-backend-qp1x.onrender.com/api/auth/login",
         {
           method: "POST",
           headers: {
@@ -102,7 +102,7 @@ function Login({ onLogin }) {
 
     try {
       const response = await fetch(
-        "http://localhost:5000/api/auth/forgot-password",
+        "https://havenly-backend-qp1x.onrender.com/api/auth/forgot-password",
         {
           method: "POST",
           headers: {

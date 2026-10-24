@@ -19,7 +19,7 @@ import {
 
 import "./AdminProperties.css";
 
-const API_URL = "http://localhost:5000/api/properties";
+const API_URL = "https://havenly-backend-qp1x.onrender.com/api/properties";
 
 const initialForm = {
   title: "",

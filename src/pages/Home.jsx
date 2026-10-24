@@ -11,7 +11,7 @@ import {
 
 import PropertyCard from "../components/PropertyCard";
 
-const API_URL = "http://localhost:5000/api/properties";
+const API_URL = "https://havenly-backend-qp1x.onrender.com/api/properties";
 
 function Home({ favorites = [], onFavorite }) {
   const navigate = useNavigate();

@@ -15,7 +15,7 @@ import {
 
 import "./AdminMessages.css";
 
-const API_URL = "http://localhost:5000/api/admin";
+const API_URL = "https://havenly-backend-qp1x.onrender.com/api/admin";
 
 function AdminMessages({ onMessagesChange }) {
   const [messages, setMessages] = useState([]);

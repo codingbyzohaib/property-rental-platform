@@ -25,11 +25,10 @@ function PropertyDetails({
       try {
         setLoading(true);
         setError("");
-
-        const response = await fetch(
-          `http://localhost:5000/api/properties/${id}`
-        );
-
+        
+const response = await fetch(
+  `https://havenly-backend-qp1x.onrender.com/api/properties/${id}`
+);
         const result = await response.json();
 
         if (!response.ok || !result.success) {

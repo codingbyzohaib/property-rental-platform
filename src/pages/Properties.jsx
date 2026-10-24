@@ -40,7 +40,7 @@ function Properties({ favorites, onFavorite }) {
         setError("");
 
         const response = await fetch(
-          "http://localhost:5000/api/properties"
+          "https://havenly-backend-qp1x.onrender.com/api/properties"
         );
 
         if (!response.ok) {

@@ -9,15 +9,11 @@ const Message = require("./models/Message");
 const authRoutes = require("./routes/authRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 
-const {
-  protect,
-  adminOnly,
-} = require("./middleware/authMiddleware");
+const { protect, adminOnly } = require("./middleware/authMiddleware");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// CORS Middleware
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
@@ -27,36 +23,20 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: allowedOrigins,
-    methods: [
-      "GET",
-      "POST",
-      "PUT",
-      "PATCH",
-      "DELETE",
-      "OPTIONS",
-    ],
-    allowedHeaders: [
-      "Content-Type",
-      "Authorization",
-    ],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
-// General Middleware
 app.use(express.json({ limit: "20kb" }));
 
-// Authentication Routes
 app.use("/api/auth", authRoutes);
-
-// Protected Admin Routes
 app.use("/api/admin", adminRoutes);
 
-// Home Route
 app.get("/", (req, res) => {
   res.send("Havenly Backend is Running!");
 });
 
-// API Test Route
 app.get("/api", (req, res) => {
   res.status(200).json({
     success: true,
@@ -64,7 +44,6 @@ app.get("/api", (req, res) => {
   });
 });
 
-// API Test Route
 app.get("/api/test-put", (req, res) => {
   res.status(200).json({
     success: true,
@@ -128,118 +107,99 @@ app.get("/api/properties/:id", async (req, res) => {
 });
 
 // CREATE PROPERTY - ADMIN ONLY
-app.post(
-  "/api/properties",
-  protect,
-  adminOnly,
-  async (req, res) => {
-    try {
-      const property = await Property.create(req.body);
+app.post("/api/properties", protect, adminOnly, async (req, res) => {
+  try {
+    const property = await Property.create(req.body);
 
-      res.status(201).json({
-        success: true,
-        message: "Property created successfully.",
-        data: property,
-      });
-    } catch (error) {
-      console.error("Create property error:", error);
+    res.status(201).json({
+      success: true,
+      message: "Property created successfully.",
+      data: property,
+    });
+  } catch (error) {
+    console.error("Create property error:", error);
 
-      res.status(400).json({
-        success: false,
-        message:
-          error.message || "Failed to create property.",
-      });
-    }
+    res.status(400).json({
+      success: false,
+      message: error.message || "Failed to create property.",
+    });
   }
-);
+});
 
 // UPDATE PROPERTY - ADMIN ONLY
-app.put(
-  "/api/properties/:id",
-  protect,
-  adminOnly,
-  async (req, res) => {
-    try {
-      if (!mongoose.isValidObjectId(req.params.id)) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid property ID.",
-        });
-      }
-
-      const property = await Property.findByIdAndUpdate(
-        req.params.id,
-        req.body,
-        {
-          new: true,
-          runValidators: true,
-        }
-      );
-
-      if (!property) {
-        return res.status(404).json({
-          success: false,
-          message: "Property not found.",
-        });
-      }
-
-      res.status(200).json({
-        success: true,
-        message: "Property updated successfully.",
-        data: property,
-      });
-    } catch (error) {
-      console.error("Update property error:", error);
-
-      res.status(400).json({
+app.put("/api/properties/:id", protect, adminOnly, async (req, res) => {
+  try {
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({
         success: false,
-        message:
-          error.message || "Failed to update property.",
+        message: "Invalid property ID.",
       });
     }
+
+    const property = await Property.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    if (!property) {
+      return res.status(404).json({
+        success: false,
+        message: "Property not found.",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Property updated successfully.",
+      data: property,
+    });
+  } catch (error) {
+    console.error("Update property error:", error);
+
+    res.status(400).json({
+      success: false,
+      message: error.message || "Failed to update property.",
+    });
   }
-);
+});
 
 // DELETE PROPERTY - ADMIN ONLY
-app.delete(
-  "/api/properties/:id",
-  protect,
-  adminOnly,
-  async (req, res) => {
-    try {
-      if (!mongoose.isValidObjectId(req.params.id)) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid property ID.",
-        });
-      }
-
-      const property = await Property.findByIdAndDelete(
-        req.params.id
-      );
-
-      if (!property) {
-        return res.status(404).json({
-          success: false,
-          message: "Property not found.",
-        });
-      }
-
-      res.status(200).json({
-        success: true,
-        message: "Property deleted successfully.",
-        data: property,
-      });
-    } catch (error) {
-      console.error("Delete property error:", error);
-
-      res.status(500).json({
+app.delete("/api/properties/:id", protect, adminOnly, async (req, res) => {
+  try {
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).json({
         success: false,
-        message: "Failed to delete property.",
+        message: "Invalid property ID.",
       });
     }
+
+    const property = await Property.findByIdAndDelete(req.params.id);
+
+    if (!property) {
+      return res.status(404).json({
+        success: false,
+        message: "Property not found.",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Property deleted successfully.",
+      data: property,
+    });
+  } catch (error) {
+    console.error("Delete property error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete property.",
+    });
   }
-);
+});
 
 // SUBMIT CONTACT MESSAGE
 app.post("/api/messages", async (req, res) => {
@@ -279,8 +239,7 @@ app.post("/api/messages", async (req, res) => {
     ) {
       return res.status(400).json({
         success: false,
-        message:
-          "One or more fields exceed the allowed length.",
+        message: "One or more fields exceed the allowed length.",
       });
     }
 
@@ -293,8 +252,7 @@ app.post("/api/messages", async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message:
-        "Your message has been submitted successfully.",
+      message: "Your message has been submitted successfully.",
       data: {
         id: savedMessage._id,
         createdAt: savedMessage.createdAt,
@@ -305,13 +263,12 @@ app.post("/api/messages", async (req, res) => {
 
     res.status(500).json({
       success: false,
-      message:
-        "Failed to submit your message. Please try again.",
+      message: "Failed to submit your message. Please try again.",
     });
   }
 });
 
-// DATABASE CONNECTION AND SERVER START
+// DATABASE CONNECTION
 const mongoURI =
   process.env.MONGODB_URI ||
   process.env.MONGO_URI ||
@@ -327,10 +284,6 @@ mongoose
     });
   })
   .catch((error) => {
-    console.error(
-      "MongoDB connection failed:",
-      error.message
-    );
-
+    console.error("MongoDB connection failed:", error.message);
     process.exit(1);
   });

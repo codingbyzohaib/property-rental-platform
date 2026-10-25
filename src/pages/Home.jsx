@@ -24,39 +24,42 @@ function Home({ favorites = [], onFavorite }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    const fetchFeaturedProperties = async () => {
-      try {
-        setLoading(true);
-        setError("");
+  const fetchFeaturedProperties = async () => {
+    try {
+      setLoading(true);
+      setError("");
 
-        const response = await fetch(API_URL);
+      const response = await fetch(API_URL);
 
-        if (!response.ok) {
-          throw new Error("Unable to load properties.");
-        }
-
-        const result = await response.json();
-
-        if (!result.success || !Array.isArray(result.data)) {
-          throw new Error("Invalid properties response.");
-        }
-
-        const formattedProperties = result.data.map((property) => ({
-          ...property,
-          id: property._id || property.id,
-          type: property.propertyType || property.type || "",
-        }));
-
-        setProperties(formattedProperties);
-      } catch (err) {
-        console.error("Home Properties API Error:", err);
-        setError("Featured properties load nahi ho sakin.");
-      } finally {
-        setLoading(false);
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.status}`);
       }
-    };
 
+      const result = await response.json();
+
+      if (!result.success || !Array.isArray(result.data)) {
+        throw new Error("Invalid properties response.");
+      }
+
+      const formattedProperties = result.data.map((property) => ({
+        ...property,
+        id: property._id || property.id,
+        type: property.propertyType || property.type || "",
+      }));
+
+      setProperties(formattedProperties);
+    } catch (err) {
+      console.error("Home Properties API Error:", err);
+      setError(
+        err.message ||
+          "Properties load nahi ho sakin. Please dobara try karein."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchFeaturedProperties();
   }, []);
 
@@ -82,9 +85,12 @@ function Home({ favorites = [], onFavorite }) {
     navigate(query ? `/properties?${query}` : "/properties");
   };
 
-  const featuredProperties = properties.filter(
-    (property) => property.featured
-  );
+  const featuredProperties = properties
+    .filter((property) => property.featured === true)
+    .concat(
+      properties.filter((property) => property.featured !== true)
+    )
+    .slice(0, 3);
 
   const popularLocations = ["Lahore", "Islamabad", "Karachi"];
 
@@ -108,7 +114,6 @@ function Home({ favorites = [], onFavorite }) {
           <form className="hero-search" onSubmit={handleSearch}>
             <div className="search-field">
               <label>Location</label>
-
               <input
                 type="text"
                 placeholder="City or area"
@@ -119,7 +124,6 @@ function Home({ favorites = [], onFavorite }) {
 
             <div className="search-field">
               <label>Property Type</label>
-
               <select
                 value={type}
                 onChange={(e) => setType(e.target.value)}
@@ -133,7 +137,6 @@ function Home({ favorites = [], onFavorite }) {
 
             <div className="search-field">
               <label>Budget</label>
-
               <select
                 value={budget}
                 onChange={(e) => setBudget(e.target.value)}
@@ -176,12 +179,12 @@ function Home({ favorites = [], onFavorite }) {
       <section className="stats-strip">
         <div className="container stats-grid">
           <div>
-            <strong>{properties.length}+</strong>
+            <strong>{properties.length}</strong>
             <span>Properties</span>
           </div>
 
           <div>
-            <strong>{popularLocations.length}+</strong>
+            <strong>{popularLocations.length}</strong>
             <span>Popular Cities</span>
           </div>
 
@@ -231,7 +234,7 @@ function Home({ favorites = [], onFavorite }) {
               <button
                 type="button"
                 className="primary-button"
-                onClick={() => window.location.reload()}
+                onClick={fetchFeaturedProperties}
               >
                 Try Again
               </button>
@@ -244,7 +247,11 @@ function Home({ favorites = [], onFavorite }) {
                   property={property}
                   isFavorite={favorites.some(
                     (favorite) =>
-                      String(favorite) === String(property.id)
+                      String(
+                        typeof favorite === "object"
+                          ? favorite.id || favorite._id
+                          : favorite
+                      ) === String(property.id)
                   )}
                   onFavorite={onFavorite}
                 />
@@ -252,9 +259,9 @@ function Home({ favorites = [], onFavorite }) {
             </div>
           ) : (
             <div className="empty-state">
-              <h2>No featured properties yet</h2>
+              <h2>No properties available yet</h2>
               <p>
-                Check back soon for properties selected by Havenly.
+                Check back soon for available Havenly properties.
               </p>
 
               <Link to="/properties" className="primary-button">
@@ -355,9 +362,7 @@ function Home({ favorites = [], onFavorite }) {
 
                 <h3>{city}</h3>
 
-                <p>
-                  Explore available properties in {city}.
-                </p>
+                <p>Explore available properties in {city}.</p>
 
                 <span className="text-link">
                   Explore

@@ -9,7 +9,6 @@ const User = require("../models/User");
 
 const router = express.Router();
 
-// Gmail transporter
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -58,6 +57,10 @@ router.post("/register", async (req, res) => {
       password: hashedPassword,
     });
 
+    if (!process.env.JWT_SECRET) {
+      throw new Error("JWT_SECRET is missing.");
+    }
+
     const token = jwt.sign(
       { userId: user._id },
       process.env.JWT_SECRET,
@@ -72,6 +75,7 @@ router.post("/register", async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
+        role: user.role,
       },
     });
   } catch (error) {
@@ -119,6 +123,10 @@ router.post("/login", async (req, res) => {
       });
     }
 
+    if (!process.env.JWT_SECRET) {
+      throw new Error("JWT_SECRET is missing.");
+    }
+
     const token = jwt.sign(
       { userId: user._id },
       process.env.JWT_SECRET,
@@ -133,6 +141,7 @@ router.post("/login", async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
+        role: user.role,
       },
     });
   } catch (error) {
@@ -157,11 +166,19 @@ router.post("/forgot-password", async (req, res) => {
       });
     }
 
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_APP_PASSWORD) {
+      console.error("Email environment variables are missing.");
+
+      return res.status(500).json({
+        success: false,
+        message: "Password reset email is not configured.",
+      });
+    }
+
     const user = await User.findOne({
       email: email.trim().toLowerCase(),
     });
 
-    // Same response whether the account exists or not.
     if (!user) {
       return res.status(200).json({
         success: true,
@@ -170,23 +187,27 @@ router.post("/forgot-password", async (req, res) => {
       });
     }
 
-    // Generate a secure, single-use reset token.
     const resetToken = crypto.randomBytes(32).toString("hex");
 
-    // Store only the hash of the token in MongoDB.
     user.resetPasswordToken = crypto
       .createHash("sha256")
       .update(resetToken)
       .digest("hex");
 
-    // Link expires in 15 minutes.
-    user.resetPasswordExpires = Date.now() + 15 * 60 * 1000;
+    user.resetPasswordExpires = new Date(
+      Date.now() + 15 * 60 * 1000
+    );
 
     await user.save();
 
+    const frontendUrl = (
+      process.env.FRONTEND_URL ||
+      "https://property-rental-platform-ashen.vercel.app"
+    ).replace(/\/+$/, "");
+
     const resetUrl =
-      `${process.env.FRONTEND_URL || "http://localhost:5173"}` +
-      `/reset-password?token=${resetToken}&email=${encodeURIComponent(user.email)}`;
+      `${frontendUrl}/reset-password?token=${resetToken}` +
+      `&email=${encodeURIComponent(user.email)}`;
 
     try {
       await transporter.sendMail({
@@ -200,30 +221,25 @@ We received a request to reset your Havenly password.
 Open this link to choose a new password:
 ${resetUrl}
 
-This link expires in 15 minutes and can only be used once.
-
-If you did not request this, you can ignore this email.
+This link expires in 15 minutes.
 
 Havenly Team`,
         html: `
           <div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;padding:28px;border:1px solid #e5e7eb;border-radius:12px;">
             <h2 style="color:#166534;">Reset Your Havenly Password</h2>
             <p>Hello ${user.name.replace(/[&<>"']/g, "")},</p>
-            <p>We received a request to reset your Havenly account password.</p>
-            <p style="margin:28px 0;">
-              <a href="${resetUrl}"
-                 style="background:#166534;color:#ffffff;padding:13px 22px;text-decoration:none;border-radius:7px;display:inline-block;">
+            <p>We received a request to reset your Havenly password.</p>
+            <p>
+              <a href="${resetUrl}" style="background:#166534;color:white;padding:13px 22px;text-decoration:none;border-radius:7px;display:inline-block;">
                 Reset Password
               </a>
             </p>
-            <p>This link expires in <strong>15 minutes</strong> and can only be used once.</p>
-            <p>If you did not request a password reset, you can ignore this email.</p>
+            <p>This link expires in 15 minutes.</p>
             <p>Regards,<br>Havenly Team</p>
           </div>
         `,
       });
     } catch (emailError) {
-      // Invalidate the token if email delivery fails.
       user.resetPasswordToken = undefined;
       user.resetPasswordExpires = undefined;
       await user.save();
@@ -232,7 +248,7 @@ Havenly Team`,
 
       return res.status(500).json({
         success: false,
-        message: "Unable to send the reset email. Please try again later.",
+        message: "Unable to send the reset email.",
       });
     }
 
@@ -289,8 +305,6 @@ router.post("/reset-password", async (req, res) => {
     }
 
     user.password = await bcrypt.hash(password, 12);
-
-    // Make the reset link single-use.
     user.resetPasswordToken = undefined;
     user.resetPasswordExpires = undefined;
 

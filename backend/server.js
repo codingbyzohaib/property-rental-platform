@@ -15,6 +15,8 @@ const PORT = process.env.PORT || 5000;
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
+  "https://property-rental-platform-ashen.vercel.app",
+  "https://property-rental-platform-git-master-codingbyzohaib.vercel.app",
   "https://property-rental-platform-nr0x9e9it-codingbyzohaib.vercel.app",
   "https://property-rental-platform-cdohgcjyj-codingbyzohaib.vercel.app",
 ];

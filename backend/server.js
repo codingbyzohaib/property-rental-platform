@@ -5,10 +5,8 @@ require("dotenv").config();
 
 const Property = require("./models/Property");
 const Message = require("./models/Message");
-
 const authRoutes = require("./routes/authRoutes");
 const adminRoutes = require("./routes/adminRoutes");
-
 const { protect, adminOnly } = require("./middleware/authMiddleware");
 
 const app = express();
@@ -17,6 +15,7 @@ const PORT = process.env.PORT || 5000;
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
+  "https://property-rental-platform-nr0x9e9it-codingbyzohaib.vercel.app",
   "https://property-rental-platform-cdohgcjyj-codingbyzohaib.vercel.app",
 ];
 
@@ -51,12 +50,9 @@ app.get("/api/test-put", (req, res) => {
   });
 });
 
-// GET ALL PROPERTIES
 app.get("/api/properties", async (req, res) => {
   try {
-    const properties = await Property.find().sort({
-      createdAt: -1,
-    });
+    const properties = await Property.find().sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
@@ -65,7 +61,6 @@ app.get("/api/properties", async (req, res) => {
     });
   } catch (error) {
     console.error("Fetch properties error:", error);
-
     res.status(500).json({
       success: false,
       message: "Failed to fetch properties.",
@@ -73,7 +68,6 @@ app.get("/api/properties", async (req, res) => {
   }
 });
 
-// GET SINGLE PROPERTY
 app.get("/api/properties/:id", async (req, res) => {
   try {
     if (!mongoose.isValidObjectId(req.params.id)) {
@@ -98,7 +92,6 @@ app.get("/api/properties/:id", async (req, res) => {
     });
   } catch (error) {
     console.error("Fetch property error:", error);
-
     res.status(500).json({
       success: false,
       message: "Failed to fetch property.",
@@ -106,7 +99,6 @@ app.get("/api/properties/:id", async (req, res) => {
   }
 });
 
-// CREATE PROPERTY - ADMIN ONLY
 app.post("/api/properties", protect, adminOnly, async (req, res) => {
   try {
     const property = await Property.create(req.body);
@@ -118,7 +110,6 @@ app.post("/api/properties", protect, adminOnly, async (req, res) => {
     });
   } catch (error) {
     console.error("Create property error:", error);
-
     res.status(400).json({
       success: false,
       message: error.message || "Failed to create property.",
@@ -126,7 +117,6 @@ app.post("/api/properties", protect, adminOnly, async (req, res) => {
   }
 });
 
-// UPDATE PROPERTY - ADMIN ONLY
 app.put("/api/properties/:id", protect, adminOnly, async (req, res) => {
   try {
     if (!mongoose.isValidObjectId(req.params.id)) {
@@ -159,7 +149,6 @@ app.put("/api/properties/:id", protect, adminOnly, async (req, res) => {
     });
   } catch (error) {
     console.error("Update property error:", error);
-
     res.status(400).json({
       success: false,
       message: error.message || "Failed to update property.",
@@ -167,7 +156,6 @@ app.put("/api/properties/:id", protect, adminOnly, async (req, res) => {
   }
 });
 
-// DELETE PROPERTY - ADMIN ONLY
 app.delete("/api/properties/:id", protect, adminOnly, async (req, res) => {
   try {
     if (!mongoose.isValidObjectId(req.params.id)) {
@@ -193,7 +181,6 @@ app.delete("/api/properties/:id", protect, adminOnly, async (req, res) => {
     });
   } catch (error) {
     console.error("Delete property error:", error);
-
     res.status(500).json({
       success: false,
       message: "Failed to delete property.",
@@ -201,7 +188,6 @@ app.delete("/api/properties/:id", protect, adminOnly, async (req, res) => {
   }
 });
 
-// SUBMIT CONTACT MESSAGE
 app.post("/api/messages", async (req, res) => {
   try {
     const { name, email, subject, message } = req.body;
@@ -260,7 +246,6 @@ app.post("/api/messages", async (req, res) => {
     });
   } catch (error) {
     console.error("Submit contact message error:", error);
-
     res.status(500).json({
       success: false,
       message: "Failed to submit your message. Please try again.",
@@ -268,7 +253,6 @@ app.post("/api/messages", async (req, res) => {
   }
 });
 
-// DATABASE CONNECTION
 const mongoURI =
   process.env.MONGODB_URI ||
   process.env.MONGO_URI ||
